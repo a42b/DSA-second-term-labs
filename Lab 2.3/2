@@ -1,0 +1,288 @@
+#include <stdio.h>
+#include <windows.h>
+#include <math.h>
+// n1=2, n2=1, n3=0, n4=1;
+
+LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+
+char ProgName[]="Лабораторна робота 3";
+int n = 10;
+float k = 1.0-0.005-0.25;
+
+//window size:
+int xWindowCorner = 100;
+int yWindowCorner = 100;
+int windowWidth = 1200;
+int windowHeight = 600;
+
+//allocates memory for matrix and assigns to random float(0-2);
+float** randm(int rows, int cols);
+
+// multiplies a matrix T by the coef(k) and creates and new matrix of integers 1 and 0 based on T
+int** mulmr(float coef, float** matrix, int rows, int cols);
+
+//
+void arrow(HDC hdc, float fi, int px,int py);
+//
+void drawArrow(HDC hdc, int xStart, int yStart, int xEnd, int yEnd, int vertexRad);
+
+//calculates vertices coords for directed graph based on window size
+void calcCoordsDirect(int xWidth, int yHeight, int n, float* nx, float* ny);
+
+//calculates vertices coords for undirected graph based on window size
+void calcCoordsUndirect(int xWidth, int yHeight, int n, float* nx, float* ny);
+//
+void drawUndirectGraph(HDC hdc, float* nxUn, float* nyUn, int** matrix, int verticeRad, HPEN pen);
+
+void drawDirectGraph(HDC hdc, float* xCoords, float* yCoords, int** matrix, int vertexRad, HPEN pen);
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int nCmdShow)
+{
+    WNDCLASS w;
+    w.lpszClassName = ProgName;
+    w.hInstance = hInstance;
+    w.lpfnWndProc = WndProc;
+    w.hCursor = LoadCursor(NULL, IDC_ARROW);
+    w.hIcon = 0;
+    w.lpszMenuName = 0;
+    w.hbrBackground = WHITE_BRUSH;
+    w.style = CS_HREDRAW|CS_VREDRAW;
+    w.cbClsExtra = 0;
+    w.cbWndExtra = 0;
+    if(!RegisterClass(&w))
+        return 0;
+    HWND hWnd;
+    MSG lpMsg;
+    hWnd = CreateWindow(ProgName,
+                        "Лабораторна робота 3. Виконала Бондар Антоніна",
+                        WS_OVERLAPPEDWINDOW,
+                        xWindowCorner,
+                        yWindowCorner,
+                        windowWidth,
+                        windowHeight,
+                        (HWND)NULL,
+                        (HMENU)NULL,
+                        (HINSTANCE)hInstance,
+                        (HINSTANCE)NULL);
+    ShowWindow(hWnd, nCmdShow);
+    while(GetMessage(&lpMsg, hWnd, 0, 0)) {
+        TranslateMessage(&lpMsg);
+        DispatchMessage(&lpMsg);
+    }
+    return(lpMsg.wParam);
+}
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT messg, WPARAM wParam, LPARAM lParam)
+{
+    HDC hdc;
+    PAINTSTRUCT ps;
+
+    switch(messg){
+        case WM_PAINT :
+
+            hdc = BeginPaint(hWnd, &ps);
+            char* nn[10] = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "7"};
+            float nxD[10];
+            float nyD[10];
+            float nxUn[10];
+            float nyUn[10];
+
+            float** T = randm(n, n);
+            int ** A = mulmr(k, T, n, n);
+            calcCoordsDirect(windowWidth,windowHeight,n,nxD,nyD);
+            calcCoordsUndirect(windowWidth, windowHeight,n,nxUn,nyUn);
+
+            int  verticeRad= floor(windowHeight/25);
+            int dtx = floor(windowWidth/240);
+            HPEN BPen = CreatePen(PS_SOLID, 3, RGB(124,67,109));
+            HPEN KPen = CreatePen(PS_SOLID, 1, RGB(116,31,78));
+
+            drawUndirectGraph(hdc, nxUn, nyUn, A, verticeRad, KPen);
+
+            drawDirectGraph(hdc, nxD, nyD, A, verticeRad, KPen);
+
+            SelectObject(hdc, BPen);
+            //draw directed graph vertices
+            for(int i = 0; i < n; i++){
+                Ellipse(hdc, nxD[i]-verticeRad,nyD[i]-verticeRad,nxD[i]+verticeRad,nyD[i]+verticeRad);
+                TextOut(hdc, nxD[i]-dtx,nyD[i]-verticeRad/2, nn[i],1);
+            }
+            //draw undirect vertices
+            for(int i = 0; i < n; i++){
+                Ellipse(hdc, nxUn[i]-verticeRad,nyUn[i]-verticeRad,nxUn[i]+verticeRad,nyUn[i]+verticeRad);
+                TextOut(hdc, nxUn[i]-dtx,nyUn[i]-verticeRad/2, nn[i],1);
+            }
+
+            EndPaint(hWnd, &ps);
+            break;
+
+        case WM_DESTROY:
+            PostQuitMessage(0);
+            break;
+
+        default:
+            return DefWindowProc(hWnd, messg, wParam, lParam);
+    }
+
+}
+
+
+
+float** randm(int rows, int cols) {
+    printf("\nPrinting matrix after randm:\n");
+    int i,j;
+    float** matrix = (float**)malloc(sizeof(float*) * rows );
+    srand(2101);
+    for (i = 0; i < rows; i++) {
+        matrix[i] = (double*)malloc(sizeof(float)* cols);
+        for (j = 0; j < cols; j++) {
+            matrix[i][j] = ((float)rand()/RAND_MAX)*(float)(2);
+            printf("%f\t", matrix[i][j]);
+        }
+        printf("\n");
+    }
+    return matrix;
+}
+
+int** mulmr(float coef, float** matrix, int rows, int cols){
+    printf("\nPrinting matrix after mulmr:\n");
+    int** matrixMul = (int**)malloc(sizeof(int*) * rows );
+    for (int i = 0; i < rows; i++) {
+        matrixMul[i] = (int*)malloc(sizeof(int)* cols);
+        for (int j = 0; j < cols; j++) {
+            matrixMul[i][j] = (int)floor(matrix[i][j] * coef);
+            printf("%d\t", matrixMul[i][j]);
+        }
+        printf("\n");
+        free(matrix[i]);
+    }
+    free(matrix);
+    return matrixMul;
+};
+
+void arrow(HDC hdc, float fi, int px,int py){
+    float angleRad = fi * M_PI / 180.0;
+
+    int arrowLength = 15;  // Length of the arrowhead lines
+
+    // Calculate the coordinates of the arrowhead points
+    int lx = px - arrowLength * cos(angleRad + 0.3);
+    int ly = py - arrowLength * sin(angleRad + 0.3);
+    int rx = px - arrowLength * cos(angleRad - 0.3);
+    int ry = py - arrowLength * sin(angleRad - 0.3);
+
+    // Draw the arrowhead
+    MoveToEx(hdc, lx, ly, NULL);
+    LineTo(hdc, px, py);
+    LineTo(hdc, rx, ry);
+}
+
+void calcCoordsDirect(int xWidth, int yHeight, int n, float* nx, float* ny){
+    float rad = (yHeight - 200)/2;
+    float x0 = xWidth/4;
+    float y0 = 50 + rad;
+    float angle = 2 * M_PI /n;
+    for (int i = 0; i<n; i++){
+        float currentAngle = i * angle;
+        nx[i] = x0 + rad * cos(currentAngle);
+        ny[i] = y0 + rad * sin(currentAngle);
+    }
+}
+
+void calcCoordsUndirect(int xWidth, int yHeight, int n, float* nx, float* ny){
+    float rad = (yHeight - 200)/2;
+    float x0 =  (xWidth/4)*3;
+    float y0 = 50 + rad;
+    float angle = 2 * M_PI /n;
+    for (int i = 0; i<n; i++){
+        float currentAngle = i * angle;
+        nx[i] = x0 + rad * cos(currentAngle);
+        ny[i] = y0 + rad * sin(currentAngle);
+    }
+}
+
+void drawUndirectGraph(HDC hdc, float* nxUn, float* nyUn, int** matrix, int verticeRad, HPEN pen){
+    SelectObject(hdc, pen);
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            if (matrix[i][j] == 1) {
+                MoveToEx(hdc, nxUn[i], nyUn[i], NULL);
+                if (i == j) {
+                    if (i <= 2 || i >= 8) {
+                        printf("here\n");
+                        Ellipse(hdc, nxUn[i], nyUn[i] - verticeRad, nxUn[i] + 2 * verticeRad, nyUn[i] + verticeRad);
+                    } else {
+                        printf("here\n");
+                        Ellipse(hdc, nxUn[i] - 2 * verticeRad, nyUn[i] - verticeRad, nxUn[i], nyUn[i] + verticeRad);
+                    }
+                } else {
+                    LineTo(hdc, nxUn[j], nyUn[j]);
+                }
+            }
+        }
+    }
+}
+
+void drawArrow(HDC hdc, int xStart, int yStart, int xEnd, int yEnd, int vertexRad){
+    float dx = xEnd - xStart;
+    float dy = yEnd - yStart;
+    float angleRad = atan2(dy, dx);
+    float angleDeg = angleRad * 180.0 / M_PI;
+
+    float pointX = xEnd - vertexRad * cos(angleRad);
+    float pointY = yEnd - vertexRad * sin(angleRad);
+    arrow(hdc, angleDeg, pointX, pointY);
+}
+
+void drawDirectGraph(HDC hdc, float* xCoords, float* yCoords, int** matrix, int vertexRad, HPEN pen){
+
+    SelectObject(hdc, pen);
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            if (matrix[i][j] == 1) {
+                MoveToEx(hdc, xCoords[i], yCoords[i], NULL);
+                if (i == j) {
+                    if (i <= 2 || i >= 8) {
+                        printf("here\n");
+                        Ellipse(hdc, xCoords[i], yCoords[i] , xCoords[i] + 2 * vertexRad, yCoords[i] + 2*vertexRad);
+                        arrow(hdc, 255, xCoords[i], yCoords[i]+vertexRad);
+                    } else {
+                        printf("here\n");
+                        Ellipse(hdc, xCoords[i] - 2 * vertexRad, yCoords[i] - 2*vertexRad, xCoords[i], yCoords[i]);
+                        arrow(hdc, 75, xCoords[i], yCoords[i]-vertexRad);
+                    }
+                } else {
+                    if(matrix[j][i] == matrix[i][j] && i <= j){
+                        printf("i = %d, j = %d\n", i, j);
+                        float middleX = (xCoords[i]+xCoords[j])/2;
+                        float middleY = ((yCoords[i]+yCoords[j])/2);
+                        if (middleX <= windowWidth/4) {
+                            MoveToEx(hdc, xCoords[j], yCoords[j], NULL);
+                            LineTo(hdc, middleX + 30, middleY + 20);
+                            LineTo(hdc, xCoords[i], yCoords[i]);
+                            int startX = middleX + 30;
+                            int startY = middleY +20;
+                            drawArrow(hdc, startX, startY, xCoords[j], yCoords[j], vertexRad);
+
+                        } else {
+                            MoveToEx(hdc, xCoords[j], yCoords[j], NULL);
+                            LineTo(hdc, middleX - 30, middleY + 20);
+                            LineTo(hdc, xCoords[i], yCoords[i]);
+                            int startX = middleX - 30;
+                            int startY = middleY +20;
+                            drawArrow(hdc, startX, startY, xCoords[j], xCoords[j], vertexRad);
+
+                        }
+
+                    } else {
+                        MoveToEx(hdc, xCoords[i], yCoords[i], NULL);
+                        LineTo(hdc, xCoords[j], yCoords[j]);  // Draw the line segment
+                        drawArrow(hdc, xCoords[i], yCoords[i], xCoords[j], yCoords[j], vertexRad);
+                    }
+
+
+                }
+            }
+        }
+    }
+}

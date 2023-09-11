@@ -1,0 +1,35 @@
+"C:\Program Files\JetBrains\CLion 2022.2.4\bin\cmake\win\bin\cmake.exe" -DCMAKE_BUILD_TYPE=Debug "-DCMAKE_MAKE_PROGRAM=C:/Program Files/JetBrains/CLion 2022.2.4/bin/ninja/win/ninja.exe" -G Ninja -S "D:\c\LAB 2 term\Lab 2.1(first)" -B "D:\c\LAB 2 term\Lab 2.1(first)\cmake-build-debug"
+-- The C compiler identification is GNU 11.2.0
+-- Detecting C compiler ABI info
+CMake Error:
+  Running
+
+   'C:/PROGRA~1/JETBRA~1/CLION2~1.4/bin/ninja/win/ninja.exe' '-C' 'D:/c/LAB 2 term/Lab 2.1(first)/cmake-build-debug/CMakeFiles/CMakeTmp' '-t' 'recompact'
+
+  failed with:
+
+   ninja: error: failed recompaction: Permission denied
+
+
+
+CMake Error:
+  Running
+
+   'C:/PROGRA~1/JETBRA~1/CLION2~1.4/bin/ninja/win/ninja.exe' '-C' 'D:/c/LAB 2 term/Lab 2.1(first)/cmake-build-debug/CMakeFiles/CMakeTmp' '-t' 'restat' 'build.ninja'
+
+  failed with:
+
+   ninja: error: failed recompaction: Permission denied
+
+
+
+CMake Error at C:/Program Files/JetBrains/CLion 2022.2.4/bin/cmake/win/share/cmake-3.23/Modules/CMakeDetermineCompilerABI.cmake:49 (try_compile):
+  Failed to generate test project build system.
+Call Stack (most recent call first):
+  C:/Program Files/JetBrains/CLion 2022.2.4/bin/cmake/win/share/cmake-3.23/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)
+  CMakeLists.txt:2 (project)
+
+
+-- Configuring incomplete, errors occurred!
+See also "D:/c/LAB 2 term/Lab 2.1(first)/cmake-build-debug/CMakeFiles/CMakeOutput.log".
+See also "D:/c/LAB 2 term/Lab 2.1(first)/cmake-build-debug/CMakeFiles/CMakeError.log".
